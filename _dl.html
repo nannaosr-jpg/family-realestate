@@ -31,7 +31,7 @@ function url(typename, bbox, maxf, name) {
 const P = dec(location.hash.slice(1));
 const list = document.getElementById('list');
 document.getElementById('top').textContent = '작업 ' + (P.land.length + P.buildings.length * 2) + '개';
-const add = (label, u) => { const a = document.createElement('a'); a.href = u; a.textContent = label; a.target = '_blank'; list.appendChild(a); };
+const add = (label, u) => { const a = document.createElement('a'); a.href = u; a.textContent = label; list.appendChild(a); };
 const h = t => { const d = document.createElement('h2'); d.textContent = t; list.appendChild(d); };
 h('토지 (연속지적도 lp_pa_cbnd_bubun)');
 P.land.forEach((g, i) => add('L' + String(i + 1).padStart(2, '0') + ' ' + g.ri + ' ' + g.n + '필지', url('lp_pa_cbnd_bubun', g.bbox, 6000, 'L' + String(i + 1).padStart(2, '0'))));
