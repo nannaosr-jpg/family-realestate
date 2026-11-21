@@ -23,12 +23,13 @@ function dec(s) {
 const P = dec(location.hash.slice(1));
 const list = document.getElementById('list');
 document.getElementById('top').textContent = '작업 ' + P.links.length + '개';
-P.links.forEach(([label, typename, bbox, maxf, output, fname]) => {
+P.links.forEach(([label, typename, bbox, maxf, output, fname, start]) => {
   const q = new URLSearchParams({
     key: KEY, domain: DOMAIN, service: 'WFS', version: '1.1.0', request: 'GetFeature',
     typename, srsname: 'EPSG:4326', output, maxFeatures: String(maxf), bbox: bbox.join(',')
   });
   if (fname) q.set('format_options', 'filename:' + fname);
+  if (start) q.set('startIndex', String(start));
   const a = document.createElement('a');
   a.href = API + '?' + q.toString();
   a.textContent = label;
