@@ -28,18 +28,31 @@ const log=document.getElementById('log');
 const L=(s,c)=>{const d=document.createElement('div'); if(c)d.className=c; d.textContent=s; log.appendChild(d);};
 const stat=document.getElementById('stat');
 
+function imgTest(url){return new Promise(res=>{const i=new Image();const t=setTimeout(()=>res('timeout'),15000);
+  i.onload=()=>{clearTimeout(t);res('load '+i.naturalWidth+'x'+i.naturalHeight);};
+  i.onerror=()=>{clearTimeout(t);res('error');};
+  i.src=url;});}
+
 async function wfs(type,bbox,maxf){
   const p=new URLSearchParams({key:KEY,domain:DOMAIN,service:'WFS',version:'1.1.0',request:'GetFeature',
     typename:type,srsname:'EPSG:4326',output:'application/json',maxFeatures:String(maxf),bbox:bbox.join(',')});
-  const r=await fetch(API+'?'+p.toString());
+  const url=API+'?'+p.toString();
+  let r;
+  try{ r=await fetch(url); }catch(e){ throw new Error('fetch 예외 ['+e.name+'] '+e.message); }
   const t=await r.text();
   if(!r.ok) throw new Error('HTTP '+r.status+' '+t.slice(0,200));
   let j; try{j=JSON.parse(t);}catch(e){throw new Error('JSON 아님: '+t.slice(0,200));}
-  if(!j.features) throw new Error('features 없음: '+t.slice(0,200));
+  if(!j.features) throw new Error('features 없음: '+t.slice(0,300));
   return j.features;
 }
-const OUT={stamp:new Date().toISOString(), jobs:[], results:{}};
+const OUT={stamp:new Date().toISOString(), diag:{}, jobs:[], results:{}};
 (async()=>{
+  stat.textContent='진단 중…';
+  OUT.diag.controlImg = await imgTest(DOMAIN+'/family-realestate/icon-192.png');
+  OUT.diag.vworldWmsImg = await imgTest('https://api.vworld.kr/req/wms?key='+KEY+'&domain='+encodeURIComponent(DOMAIN)+
+    '&service=WMS&version=1.3.0&request=GetMap&layers=lp_pa_cbnd_bubun&styles=&crs=EPSG:4326&bbox=37.4992,127.0675,37.5012,127.0708&width=256&height=256&format=image/png');
+  L('진단: 대조이미지 '+OUT.diag.controlImg+' / 브이월드 WMS '+OUT.diag.vworldWmsImg, 'dim');
+
   for(const j of JOBS){
     stat.textContent='조회 중: '+j.name;
     try{
@@ -56,8 +69,8 @@ const OUT={stamp:new Date().toISOString(), jobs:[], results:{}};
         });
       }
     }catch(e){ L('! '+j.name+' 실패: '+e.message,'bad'); OUT.jobs.push({name:j.name,error:e.message}); }
+    await new Promise(r=>setTimeout(r,700));
   }
-  // 후보 건물 이름 요약
   ['D-bld','S-bld','B01-bld'].forEach(k=>{
     const f=OUT.results[k]||[];
     L('['+k+'] '+f.map(x=>(x.properties.buld_nm||'(무명)')+'/'+(x.properties.pnu||'').slice(-6)+'/'+x.properties.gro_flo_co).join(' | '),'dim');
