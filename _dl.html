@@ -4,14 +4,14 @@
 body{font:13px/1.6 ui-monospace,Menlo,monospace;padding:10px;background:#0f1113;color:#ddd}
 a{display:block;padding:6px 8px;margin:3px 0;background:#1d2430;color:#8ecaff;text-decoration:none;border-radius:5px}
 a:hover{background:#26333f}
-h2{font-size:13px;color:#9ef;margin:10px 0 4px}
 </style></head>
 <body>
-<div id="top">목록 구성 중…</div>
+<div id="top">…</div>
 <div id="list"></div>
 <script>
 "use strict";
-/* URL 프래그먼트(#base64url)로 받은 bbox 목록을 SHAPE-ZIP 다운로드 링크로 바꾼다. 서버로는 전송되지 않는다. */
+/* 프래그먼트(#base64url)의 링크 정의로 V-World WFS 다운로드 링크를 만든다. 서버로 전송되지 않는다.
+   링크 정의: [라벨, 레이어, bbox[4], maxFeatures, output형식, 파일명] */
 const KEY = 'D349EBB8-42C6-411F-BD68-545881B1B94A', DOMAIN = 'https://nannaosr-jpg.github.io';
 const API = 'https://api.vworld.kr/req/wfs';
 function dec(s) {
@@ -20,30 +20,19 @@ function dec(s) {
   for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
   return JSON.parse(new TextDecoder().decode(u));
 }
-function url(typename, bbox, maxf, name) {
-  const p = new URLSearchParams({
-    key: KEY, domain: DOMAIN, service: 'WFS', version: '1.1.0', request: 'GetFeature',
-    typename, srsname: 'EPSG:4326', output: 'SHAPE-ZIP',
-    maxFeatures: String(maxf), bbox: bbox.join(','), format_options: 'filename:' + name
-  });
-  return API + '?' + p.toString();
-}
 const P = dec(location.hash.slice(1));
 const list = document.getElementById('list');
-document.getElementById('top').textContent = '작업 ' + (P.land.length + P.buildings.length * 2) + '개';
-const add = (label, u) => { const a = document.createElement('a'); a.href = u; a.textContent = label; list.appendChild(a); };
-const h = t => { const d = document.createElement('h2'); d.textContent = t; list.appendChild(d); };
-h('토지 (연속지적도 lp_pa_cbnd_bubun)');
-P.land.forEach((g, i) => add('L' + String(i + 1).padStart(2, '0') + ' ' + g.ri + ' ' + g.n + '필지', url('lp_pa_cbnd_bubun', g.bbox, 1000, 'L' + String(i + 1).padStart(2, '0'))));
-h('건물 — ① 대지 필지');
-P.buildings.forEach((b, i) => {
-  const bb = [b.lng - 0.0008, b.lat - 0.0006, b.lng + 0.0008, b.lat + 0.0006];
-  add('B' + String(i + 1).padStart(2, '0') + 'a ' + b.lot + ' 필지', url('lp_pa_cbnd_bubun', bb, 200, 'B' + String(i + 1).padStart(2, '0') + 'a'));
-});
-h('건물 — ② 건물도형 lt_c_spbd (±200m)');
-P.buildings.forEach((b, i) => {
-  const bb = [b.lng - 0.0024, b.lat - 0.0018, b.lng + 0.0024, b.lat + 0.0018];
-  add('B' + String(i + 1).padStart(2, '0') + 'b ' + b.lot + ' 주변', url('lt_c_spbd', bb, 1000, 'B' + String(i + 1).padStart(2, '0') + 'b'));
+document.getElementById('top').textContent = '작업 ' + P.links.length + '개';
+P.links.forEach(([label, typename, bbox, maxf, output, fname]) => {
+  const q = new URLSearchParams({
+    key: KEY, domain: DOMAIN, service: 'WFS', version: '1.1.0', request: 'GetFeature',
+    typename, srsname: 'EPSG:4326', output, maxFeatures: String(maxf), bbox: bbox.join(',')
+  });
+  if (fname) q.set('format_options', 'filename:' + fname);
+  const a = document.createElement('a');
+  a.href = API + '?' + q.toString();
+  a.textContent = label;
+  list.appendChild(a);
 });
 </script>
 </body></html>
