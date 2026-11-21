@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>cors probe</title></head>
+<body><pre id="o">…</pre>
+<script>
+"use strict";
+const KEY = 'D349EBB8-42C6-411F-BD68-545881B1B94A', D = 'https://nannaosr-jpg.github.io';
+const q = new URLSearchParams({key:KEY, domain:D, service:'WFS', version:'1.1.0', request:'GetFeature',
+  typename:'lp_pa_cbnd_bubun', srsname:'EPSG:4326', output:'application/json', maxFeatures:'1',
+  bbox:'34.9450,126.5745,34.9470,126.5765'});
+const o = document.getElementById('o');
+const line = s => { o.textContent += '\n' + s; };
+(async () => {
+  o.textContent = 'origin=' + location.origin;
+  const t0 = Date.now();
+  try {
+    const r = await fetch('https://api.vworld.kr/req/wfs?' + q, {headers:{Accept:'application/json'}});
+    const t = await r.text();
+    line('FETCH HTTP ' + r.status + ' ' + (Date.now()-t0) + 'ms len=' + t.length);
+    line('body: ' + t.slice(0, 200));
+  } catch (e) { line('FETCH FAIL ' + e.name + ': ' + e.message); }
+  // JSONP 폴백 확인 (GeoServer format_options=callback)
+  await new Promise(res => {
+    const s = document.createElement('script');
+    window.__cb = j => { line('JSONP OK features=' + (j.features||[]).length + ' ' + JSON.stringify((j.features&&j.features[0]&&j.features[0].properties||{}).addr || '')); res(); };
+    s.src = 'https://api.vworld.kr/req/wfs?' + q + '&format_options=callback:__cb';
+    s.onerror = () => { line('JSONP FAIL (script error)'); res(); };
+    document.body.appendChild(s);
+    setTimeout(() => { line('JSONP timeout'); res(); }, 12000);
+  });
+  line('done');
+})();
+</script>
+</body></html>
