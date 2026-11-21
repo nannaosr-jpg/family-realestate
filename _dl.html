@@ -34,16 +34,16 @@ document.getElementById('top').textContent = '작업 ' + (P.land.length + P.buil
 const add = (label, u) => { const a = document.createElement('a'); a.href = u; a.textContent = label; list.appendChild(a); };
 const h = t => { const d = document.createElement('h2'); d.textContent = t; list.appendChild(d); };
 h('토지 (연속지적도 lp_pa_cbnd_bubun)');
-P.land.forEach((g, i) => add('L' + String(i + 1).padStart(2, '0') + ' ' + g.ri + ' ' + g.n + '필지', url('lp_pa_cbnd_bubun', g.bbox, 6000, 'L' + String(i + 1).padStart(2, '0'))));
+P.land.forEach((g, i) => add('L' + String(i + 1).padStart(2, '0') + ' ' + g.ri + ' ' + g.n + '필지', url('lp_pa_cbnd_bubun', g.bbox, 1000, 'L' + String(i + 1).padStart(2, '0'))));
 h('건물 — ① 대지 필지');
 P.buildings.forEach((b, i) => {
   const bb = [b.lng - 0.0008, b.lat - 0.0006, b.lng + 0.0008, b.lat + 0.0006];
-  add('B' + String(i + 1).padStart(2, '0') + 'a ' + b.lot + ' 필지', url('lp_pa_cbnd_bubun', bb, 120, 'B' + String(i + 1).padStart(2, '0') + 'a'));
+  add('B' + String(i + 1).padStart(2, '0') + 'a ' + b.lot + ' 필지', url('lp_pa_cbnd_bubun', bb, 200, 'B' + String(i + 1).padStart(2, '0') + 'a'));
 });
 h('건물 — ② 건물도형 lt_c_spbd (±200m)');
 P.buildings.forEach((b, i) => {
   const bb = [b.lng - 0.0024, b.lat - 0.0018, b.lng + 0.0024, b.lat + 0.0018];
-  add('B' + String(i + 1).padStart(2, '0') + 'b ' + b.lot + ' 주변', url('lt_c_spbd', bb, 800, 'B' + String(i + 1).padStart(2, '0') + 'b'));
+  add('B' + String(i + 1).padStart(2, '0') + 'b ' + b.lot + ' 주변', url('lt_c_spbd', bb, 1000, 'B' + String(i + 1).padStart(2, '0') + 'b'));
 });
 </script>
 </body></html>
